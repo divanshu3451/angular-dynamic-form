@@ -1,0 +1,282 @@
+<form [formGroup]="form" class="dynamic-form">
+  <div class="form-grid">
+    @for (field of fields(); track $index) {
+      @if (field.type === 'formtitle') {
+        <h2
+          [style.font-size]="field.styles?.titleSize || '24px'"
+          [style.color]="field.styles?.color || 'inherit'"
+        >
+          {{ field.label }}
+        </h2>
+      }
+      <div class="form-field" [class.full-width]="field.type === 'textarea'">
+        <!-- Text Inputs -->
+        @if (
+          ['text', 'number', 'email', 'password', 'color', 'range'].includes(
+            field.type
+          )
+        ) {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ field.label }}</mat-label>
+            <input
+              matInput
+              [type]="getFieldType(field)"
+              [formControlName]="field.name"
+              [placeholder]="field.placeholder || ''"
+            />
+            @if (form.get(field.name)?.hasError('required')) {
+              <mat-error> {{ field.label }} is required </mat-error>
+            }
+            @if (form.get(field.name)?.hasError('minlength')) {
+              <mat-error
+                >Minimum length required is
+                {{ field.validation?.minLength }}</mat-error
+              >
+            }
+            @if (form.get(field.name)?.hasError('maxlength')) {
+              <mat-error
+                >Maximum length required is
+                {{ field.validation?.maxLength }}</mat-error
+              >
+            }
+            @if (form.get(field.name)?.hasError('pattern')) {
+              <mat-error>Invalid Format</mat-error>
+            }
+
+            @if (
+              form.get(field.name)?.hasError('min') ||
+              form.get(field.name)?.hasError('max')
+            ) {
+              <mat-error
+                >{{ field.name }} should be between
+                {{ field.validation?.min }} and
+                {{ field.validation?.max }}</mat-error
+              >
+            }
+          </mat-form-field>
+        }
+
+        <!-- Textarea -->
+        @if (field.type === 'textarea') {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ field.label }}</mat-label>
+            <textarea
+              matInput
+              [formControlName]="field.name"
+              [placeholder]="field.placeholder || ''"
+              rows="4"
+            ></textarea>
+            <mat-hint
+              align="end"
+              [class.error-text]="form.get(field.name)?.hasError('maxlength')"
+            >
+              {{ form.get(field.name)?.value?.length || 0 }}/{{
+                field.validation?.maxLength
+              }}
+            </mat-hint>
+            @if (form.get(field.name)?.hasError('minlength')) {
+              <mat-error
+                >Minimum length required is
+                {{ field.validation?.minLength }}</mat-error
+              >
+            }
+            @if (form.get(field.name)?.hasError('maxlength')) {
+              <mat-error
+                >Maximum length required is
+                {{ field.validation?.maxLength }}</mat-error
+              >
+            }
+          </mat-form-field>
+        }
+
+        <!-- Select -->
+        @if (field.type === 'select') {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ field.label }}</mat-label>
+            <mat-select
+              [formControlName]="field.name"
+              [multiple]="field.multiple"
+            >
+              @for (option of field.options; track $index) {
+                <mat-option [value]="option.value">{{
+                  option.label
+                }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+
+        <!-- Date Picker -->
+        @if (field.type === 'date') {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ field.label }}</mat-label>
+            <input
+              (blur)="validateManualDateInput($event, field.name)"
+              matInput
+              [matDatepicker]="picker"
+              [formControlName]="field.name"
+              placeholder="DD/MM/YYYY"
+              [min]="field.validation?.minDate"
+              [max]="field.validation?.maxDate"
+            />
+            <mat-hint>DD/MM/YYYY</mat-hint>
+            <mat-datepicker-toggle matIconSuffix [for]="picker"
+              ><mat-icon matDatepickerToggleIcon
+                >keyboard_arrow_down</mat-icon
+              ></mat-datepicker-toggle
+            >
+            <mat-datepicker
+              #picker
+              [startAt]="
+                field.validation?.startDate
+                  ? toDate(field.validation?.startDate!)
+                  : null
+              "
+            >
+            </mat-datepicker>
+            @if (form.get(field.name)?.hasError('required')) {
+              <mat-error>{{ field.label }} is required</mat-error>
+            }
+            @if (form.get(field.name)?.hasError('invalidDate')) {
+              <mat-error>Please enter a valid date (DD/MM/YYYY)</mat-error>
+            }
+            @if (form.get(field.name)?.hasError('minDate')) {
+              <mat-error
+                >{{ field.label }} should be after
+                {{ field.validation?.minDate | date: 'dd/mm/yyyy' }}</mat-error
+              >
+            }
+            @if (form.get(field.name)?.hasError('maxDate')) {
+              <mat-error
+                >{{ field.label }} should be before
+                {{ field.validation?.maxDate | date: 'dd/mm/yyyy' }}</mat-error
+              >
+            }
+          </mat-form-field>
+        }
+
+        <!-- Date Range -->
+        @if (field.type === 'date-range') {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ field.label }}</mat-label>
+            <mat-date-range-input
+              [rangePicker]="picker"
+              [formGroup]="getDateRangeControl(field.name)"
+            >
+              <input
+                (blur)="validateManualDateInput($event, field.name + '.start')"
+                matStartDate
+                [formControlName]="'start'"
+                [placeholder]="
+                  field.dateRangePickerPlaceholder?.start || 'Start Date'
+                "
+                [min]="field.validation?.minDate"
+                [max]="field.validation?.maxDate"
+              />
+              <input
+                (blur)="validateManualDateInput($event, field.name + '.end')"
+                matEndDate
+                [formControlName]="'end'"
+                [placeholder]="
+                  field.dateRangePickerPlaceholder?.end || 'End Date'
+                "
+                [min]="field.validation?.minDate"
+                [max]="field.validation?.maxDate"
+              />
+            </mat-date-range-input>
+            <mat-hint>DD/MM/YYYY – DD/MM/YYYY</mat-hint>
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="picker"
+            ></mat-datepicker-toggle>
+            <mat-date-range-picker
+              #picker
+              [startAt]="
+                field.validation && field.validation.startDate
+                  ? toDate(field.validation.startDate)
+                  : null
+              "
+            ></mat-date-range-picker>
+          </mat-form-field>
+        }
+
+        <!-- Checkbox -->
+        @if (field.type === 'checkbox') {
+          <mat-checkbox [formControlName]="field.name">{{
+            field.label
+          }}</mat-checkbox>
+        }
+
+        <!-- Toggle -->
+        @if (field.type === 'toggle') {
+          <div class="toggle-container">
+            <mat-label>{{ field.label }}</mat-label>
+            <mat-slide-toggle [formControlName]="field.name"></mat-slide-toggle>
+          </div>
+        }
+
+        <!-- File Upload -->
+        @if (field.type === 'file' || field.type === 'image') {
+          <div class="file-upload-container">
+            <mat-label>{{ field.label }}</mat-label>
+            <input
+              type="file"
+              [accept]="
+                field.accept || (field.type === 'image' ? 'image/*' : '*')
+              "
+              [multiple]="field.multiple"
+              (change)="onFileChange($event, field.name)"
+            />
+            @if (
+              field.validation?.maxFileSize || field.validation?.allowedTypes
+            ) {
+              <mat-hint
+                >• Max size:
+                {{ field.validation?.maxFileSize! / (1024 * 1024) }}MB <br />
+                • Allowed:
+                {{ field.validation?.allowedTypes?.join(', ') || 'All types' }}
+              </mat-hint>
+            }
+
+            @if (form.get(field.name)?.hasError('fileErrors')) {
+              <mat-error>
+                @for (
+                  error of form.get(field.name)?.errors?.['fileErrors'];
+                  track $index
+                ) {
+                  {{ error }}
+                }
+              </mat-error>
+            }
+          </div>
+        }
+
+        <!-- Radio Buttons -->
+        @if (field.type === 'radio') {
+          <div class="radio-group">
+            <mat-label>{{ field.label }}</mat-label>
+            <mat-radio-group [formControlName]="field.name">
+              @for (option of field.options; track $index) {
+                <mat-radio-button [value]="option.value">{{
+                  option.label
+                }}</mat-radio-button>
+              }
+            </mat-radio-group>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="form-actions">
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      [disabled]="!form.valid"
+    >
+      Submit
+    </button>
+    <button mat-button type="button" (click)="form.reset()">Reset</button>
+  </div>
+</form>

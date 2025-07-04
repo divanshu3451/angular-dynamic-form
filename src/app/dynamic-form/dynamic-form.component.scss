@@ -1,0 +1,62 @@
+.dynamic-form {
+  h2 {
+    margin: 0 0 24px 0;
+    font-weight: 500;
+    text-align: center;
+    grid-column: 1 / -1; // Spans full width
+  }
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+
+  .form-field {
+    margin-bottom: 15px;
+
+    &.full-width {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .full-width {
+    width: 100%;
+  }
+
+  .file-upload-container,
+  .radio-group,
+  .toggle-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .file-upload-container {
+    gap: 0px;
+    input[type='file'] {
+      margin-top: 8px;
+    }
+
+    mat-error {
+      font-size: 14px;
+    }
+
+    mat-hint {
+      color: #00897B;
+      font-size: 12px;
+      transition: color 0.3s ease;
+    }
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .dynamic-form .form-grid {
+    grid-template-columns: 1fr;
+  }
+}

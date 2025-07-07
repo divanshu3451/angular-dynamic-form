@@ -2,10 +2,7 @@
   <div class="form-grid">
     @for (field of fields(); track $index) {
       @if (field.type === 'formtitle') {
-        <h2
-          [style.font-size]="field.styles?.titleSize || '24px'"
-          [style.color]="field.styles?.color || 'inherit'"
-        >
+        <h2 [style]="getTitleStyles(field)">
           {{ field.label }}
         </h2>
       }
@@ -197,6 +194,40 @@
                   : null
               "
             ></mat-date-range-picker>
+
+            <!-- Error messages -->
+            @if (getDateRangeControl(field.name).hasError('invalidRange')) {
+              <mat-error>End date must be after start date</mat-error>
+            }
+
+            @if (
+              getDateRangeControl(field.name)
+                .get('start')
+                ?.hasError('invalidDate') ||
+              getDateRangeControl(field.name)
+                .get('end')
+                ?.hasError('invalidDate')
+            ) {
+              <mat-error>Please enter valid dates</mat-error>
+            }
+
+            @if (
+              getDateRangeControl(field.name).get('start')?.hasError('minDate')
+            ) {
+              <mat-error
+                >Start date must be after
+                {{ field.validation?.minDate | date: 'dd/MM/yyyy' }}</mat-error
+              >
+            }
+
+            @if (
+              getDateRangeControl(field.name).get('end')?.hasError('maxDate')
+            ) {
+              <mat-error
+                >End date must be before
+                {{ field.validation?.maxDate | date: 'dd/MM/yyyy' }}</mat-error
+              >
+            }
           </mat-form-field>
         }
 

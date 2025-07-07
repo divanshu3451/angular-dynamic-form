@@ -4,13 +4,15 @@ import {
   input,
   OnInit,
 } from '@angular/core';
-import { FieldConfig } from '../models/field';
+import { FieldConfig, FieldType } from '../models/field';
 import {
   AbstractControl,
   FormBuilder,
   FormControl,
   FormGroup,
   ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
   Validators,
 } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -64,6 +66,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 export class DynamicFormComponent implements OnInit {
   fields = input.required<FieldConfig[]>();
   form!: FormGroup;
+  private titleStylesCache = new Map<FieldConfig, any>();
 
   constructor(private formBuilder: FormBuilder) {}
 
@@ -74,70 +77,112 @@ export class DynamicFormComponent implements OnInit {
   private createForm(): FormGroup {
     const group = this.formBuilder.group({});
     this.fields().forEach((field) => {
-      const control = this.createFormControl(field);
+      const control =
+        field.type === 'date-range'
+          ? this.createDateRangeControl(field)
+          : this.createFormControl(field);
       group.addControl(field.name, control);
     });
-
     return group;
   }
 
+  private createDateRangeControl(field: FieldConfig): FormGroup {
+    return this.formBuilder.group(
+      {
+        start: [field.value?.start || null, this.getValidatorsForField(field)],
+        end: [field.value?.end || null, this.getValidatorsForField(field)],
+      },
+      { validator: this.validateDateRange.bind(this) },
+    );
+  }
+
+  private validateDateRange(group: AbstractControl): ValidationErrors | null {
+    const start = group.get('start')?.value;
+    const end = group.get('end')?.value;
+    if (!start || !end) return null;
+    return new Date(start) > new Date(end) ? { invalidRange: true } : null;
+  }
+
   private createFormControl(field: FieldConfig): FormControl {
-    const validators = [],
-      fieldValidation = field.validation;
+    const validators = this.getValidatorsForField(field);
+
+    return this.formBuilder.control(
+      {
+        value: field.value ?? '',
+        disabled: field.disabled ?? false,
+      },
+      validators,
+    );
+  }
+
+  private getValidatorsForField(field: FieldConfig): ValidatorFn[] {
+    const validators: ValidatorFn[] = [];
+
+    if (!field.validation) return validators;
+    const v = field.validation;
 
     if (field.required) {
       validators.push(Validators.required);
     }
 
-    if (field.type === 'date') {
-      validators.push((control: AbstractControl) => {
-        if (!control.value) return null;
-        const date = new Date(control.value);
-        return isNaN(date.getTime()) ? { invalidDate: true } : null;
+    if (field.type === 'date' || field.type === 'date-range') {
+      validators.push(
+        this.dateBoundaryValidator({
+          checkInvalid: true,
+          minDate: v.minDate,
+          maxDate: v.maxDate,
+        }),
+      );
+    }
+
+    if (v.minLength) validators.push(Validators.minLength(v.minLength));
+    if (v.maxLength) validators.push(Validators.maxLength(v.maxLength));
+    if (v.pattern) validators.push(Validators.pattern(v.pattern));
+    if (v.min != null) validators.push(Validators.min(v.min));
+    if (v.max != null) validators.push(Validators.max(v.max));
+
+    return validators;
+  }
+
+  private dateBoundaryValidator(config?: {
+    checkInvalid?: boolean;
+    minDate?: string | Date;
+    maxDate?: string | Date;
+  }): ValidatorFn {
+    const minDate = config?.minDate ? new Date(config.minDate) : null;
+    const maxDate = config?.maxDate ? new Date(config.maxDate) : null;
+
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value;
+      if (!value) return null;
+
+      const date = new Date(value);
+      const x = { minDate: false, maxDate: false, invalidDate: false };
+      if (config?.checkInvalid && isNaN(date.getTime())) x.invalidDate = true;
+      if (minDate && date < minDate) x.minDate = true;
+      if (maxDate && date > maxDate) x.maxDate = true;
+
+      return x;
+    };
+  }
+
+  getTitleStyles(field: FieldConfig) {
+    if (!this.titleStylesCache.has(field)) {
+      this.titleStylesCache.set(field, {
+        'font-size': field.styles?.titleSize || '24px',
+        color: field.styles?.color || 'inherit',
       });
     }
+    return this.titleStylesCache.get(field);
+  }
 
-    if (fieldValidation) {
-      if (fieldValidation.minLength) {
-        validators.push(Validators.minLength(fieldValidation.minLength));
-      }
-      if (fieldValidation.maxLength) {
-        validators.push(Validators.maxLength(fieldValidation.maxLength));
-      }
-      if (fieldValidation.pattern) {
-        validators.push(Validators.pattern(fieldValidation.pattern));
-      }
-      if (fieldValidation.min) {
-        validators.push(Validators.min(fieldValidation.min));
-      }
-      if (fieldValidation.max) {
-        validators.push(Validators.max(fieldValidation.max));
-      }
-      if (fieldValidation.minDate) {
-        const minDate = new Date(fieldValidation.minDate);
-        validators.push((control: AbstractControl) =>
-          control.value && new Date(control.value) < minDate
-            ? { minDate: true }
-            : null,
-        );
-      }
-      if (fieldValidation.maxDate) {
-        const maxDate = new Date(fieldValidation.maxDate);
-        validators.push((control: AbstractControl) =>
-          control.value && new Date(control.value) > maxDate
-            ? { maxDate: true }
-            : null,
-        );
-      }
+  getPlaceholder(field: FieldConfig, position: 'start' | 'end'): string {
+    if (typeof field.placeholder === 'string') {
+      return position === 'start' ? field.placeholder : 'End date';
     }
-
-    return this.formBuilder.control(
-      {
-        value: field.value || '',
-        disabled: field.disabled || false,
-      },
-      validators,
-    );
+    return field.placeholder?.[position] || position === 'start'
+      ? 'Start date'
+      : 'End date';
   }
 
   validateManualDateInput(event: Event, fieldName: string) {

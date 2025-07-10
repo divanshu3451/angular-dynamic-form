@@ -219,6 +219,13 @@
   dependencies:
     tslib "^2.3.0"
 
+"@angular/material-moment-adapter@19":
+  version "19.2.19"
+  resolved "https://registry.yarnpkg.com/@angular/material-moment-adapter/-/material-moment-adapter-19.2.19.tgz#75fcfb547727ad92bffa7435c89bb6782c6c9bee"
+  integrity sha512-yL7ES1HgtEW5D3iOkio/PD/UwBgXuyNDkxBdcrRYih+8ihhbaU6rBzCT5juUujjmRtt8Aj+3M80PSq5dlsingA==
+  dependencies:
+    tslib "^2.3.0"
+
 "@angular/material@^19.2.19":
   version "19.2.19"
   resolved "https://registry.yarnpkg.com/@angular/material/-/material-19.2.19.tgz#dd10669e260109c4f944303dcff3d92fed2e5566"
@@ -5034,6 +5041,11 @@ mkdirp@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-3.0.1.tgz#e44e4c5607fb279c168241713cc6e0fea9adcb50"
   integrity sha512-+NsyUUAZDmo6YVHzL/stxSu3t9YS1iljliy3BSDrXJ/dkn1KYdmtZODGGjLcc9XLgVVpH4KshHB8XmZgMhaBXg==
+
+moment@^2.30.1:
+  version "2.30.1"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.30.1.tgz#f8c91c07b7a786e30c59926df530b4eac96974ae"
+  integrity sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==
 
 mrmime@2.0.1:
   version "2.0.1"

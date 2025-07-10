@@ -86,6 +86,32 @@
           </mat-form-field>
         }
 
+        <!-- Date -->
+        @if (field.type === 'date') {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ field.label }}</mat-label>
+            <input
+              matInput
+              [matDatepicker]="picker"
+              [formControlName]="field.name"
+              [placeholder]="field.placeholder || ''"
+              [min]="field.validation?.minDate"
+              [max]="field.validation?.maxDate"
+            />
+            <mat-hint>DD/MM/YYYY</mat-hint>
+            <mat-datepicker-toggle
+              matSuffix
+              [for]="picker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+
+            <!-- Errors -->
+            <mat-error>{{
+              getDateErrorsForTemplate(field.name, field)
+            }}</mat-error>
+          </mat-form-field>
+        }
+
         <!-- Select -->
         @if (field.type === 'select') {
           <mat-form-field appearance="outline" class="full-width">

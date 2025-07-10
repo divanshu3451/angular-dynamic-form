@@ -29,8 +29,8 @@ export class FormDemoComponent {
       name: 'dob',
       required: true,
       validation: {
-        minDate: new Date(1900, 0, 1), // 1-Jan-1900
-        maxDate: new Date(), // Today
+        minDate: new Date(1900, 0, 1),
+        maxDate: new Date(), // Today // 1-Jan-1900
         startDate: new Date(2025, 0, 1),
       },
     },
@@ -116,22 +116,22 @@ export class FormDemoComponent {
     //   name: 'resume',
     //   accept: '.pdf,.doc,.docx',
     // },
-    {
-      type: 'date-range',
-      name: 'vacationDates',
-      label: 'Vacation Period',
-      placeholder: 'Select your vacation dates',
-      dateRangePickerPlaceholder: {
-        start: 'Start vacation',
-        end: 'End vacation',
-      },
-      required: true,
-      validation: {
-        minDate: new Date(),
-        maxDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-        minRangeDays: 3,
-        maxRangeDays: 14,
-      },
-    },
+    // {
+    //   type: 'date-range',
+    //   name: 'vacationDates',
+    //   label: 'Vacation Period',
+    //   placeholder: 'Select your vacation dates',
+    //   dateRangePickerPlaceholder: {
+    //     start: 'Start vacation',
+    //     end: 'End vacation',
+    //   },
+    //   required: true,
+    //   validation: {
+    //     minDate: new Date(),
+    //     maxDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+    //     minRangeDays: 3,
+    //     maxRangeDays: 14,
+    //   },
+    // },
   ];
 }

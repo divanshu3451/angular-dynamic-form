@@ -4,16 +4,12 @@ import {
   input,
   OnInit,
 } from '@angular/core';
-import { FieldConfig, FieldType } from '../models/field';
+import { FieldConfig } from '../models/field';
 import {
-  AbstractControl,
   FormBuilder,
   FormControl,
   FormGroup,
   ReactiveFormsModule,
-  ValidationErrors,
-  ValidatorFn,
-  Validators,
 } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -25,6 +21,15 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { DynamicFormValidatorService } from './dynamic-form-validator.service';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import {
+  DateAdapter,
+  MAT_DATE_FORMATS,
+  MAT_DATE_LOCALE,
+  MatNativeDateModule,
+} from '@angular/material/core';
+import { MomentDateAdapter } from '@angular/material-moment-adapter';
+import { DDMMYYYY_DATE_FORMAT, toDDMMYYYY } from '../utils/datepicker';
 
 @Component({
   selector: 'app-dynamic-form',
@@ -39,8 +44,17 @@ import { DynamicFormValidatorService } from './dynamic-form-validator.service';
     MatIconModule,
     MatButtonModule,
     MatCheckboxModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
   ],
-  providers: [],
+  providers: [
+    {
+      provide: DateAdapter,
+      useClass: MomentDateAdapter,
+      deps: [MAT_DATE_LOCALE],
+    },
+    { provide: MAT_DATE_FORMATS, useValue: DDMMYYYY_DATE_FORMAT },
+  ],
   templateUrl: './dynamic-form.component.html',
   styleUrl: './dynamic-form.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -139,5 +153,24 @@ export class DynamicFormComponent implements OnInit {
     files.length === 1
       ? this.form.get(fieldName)?.setValue(files[0])
       : this.form.get(fieldName)?.setValue(files);
+  }
+
+  getDateErrorsForTemplate(fieldName: string, field: FieldConfig): string {
+    if (
+      this.form.get(fieldName)?.hasError('required') &&
+      !this.form.get(fieldName)?.hasError('matDatepickerParse')
+    ) {
+      return `${field.label} is required`;
+    }
+    if (this.form.get(fieldName)?.hasError('minDate')) {
+      return `Date must be after ${toDDMMYYYY(field.validation?.minDate)}`;
+    }
+    if (this.form.get(fieldName)?.hasError('maxDate')) {
+      return `Date must be before ${toDDMMYYYY(field.validation?.maxDate)}`;
+    }
+    if (this.form.get(fieldName)?.hasError('matDatepickerParse')) {
+      return `Invalid date format (DD/MM/YYYY)`;
+    }
+    return '';
   }
 }

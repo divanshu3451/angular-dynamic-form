@@ -86,13 +86,60 @@
           </mat-form-field>
         }
 
+        @if (field.type === 'date-range') {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ field.label }}</mat-label>
+            <mat-date-range-input
+              [formGroup]="form"
+              [rangePicker]="dateRangePicker"
+            >
+              <input
+                matStartDate
+                [formControlName]="field.name + '_start'"
+                [placeholder]="field.dateRangePickerPlaceholder?.start"
+              />
+              <input
+                matEndDate
+                [formControlName]="field.name + '_end'"
+                [placeholder]="field.dateRangePickerPlaceholder?.end"
+              />
+            </mat-date-range-input>
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="dateRangePicker"
+            ></mat-datepicker-toggle>
+            <mat-date-range-picker touchUi #dateRangePicker>
+              <!-- Will fix css for this later -->
+              <!-- <mat-date-range-picker-actions>
+                <button mat-button matDateRangePickerCancel>Cancel</button>
+                <button mat-raised-button matDateRangePickerApply>Apply</button>
+              </mat-date-range-picker-actions> -->
+            </mat-date-range-picker>
+            <mat-error *ngIf="form.hasError('dateRangeRequired')">
+              Both start and end dates are required.
+            </mat-error>
+            <mat-error *ngIf="form.hasError('minDate')">
+              Start date is before the minimum allowed date.
+            </mat-error>
+            <mat-error *ngIf="form.hasError('maxDate')">
+              End date is after the maximum allowed date.
+            </mat-error>
+            <mat-error *ngIf="form.hasError('minRangeDays')">
+              The range must be at least {{ field.validation?.minRangeDays }} days.
+            </mat-error>
+            <mat-error *ngIf="form.hasError('maxRangeDays')">
+              The range must be at most {{ field.validation?.maxRangeDays }} days.
+            </mat-error>
+          </mat-form-field>
+        }
+
         <!-- Date -->
         @if (field.type === 'date') {
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>{{ field.label }}</mat-label>
             <input
               matInput
-              [matDatepicker]="picker"
+              [matDatepicker]="datePicker"
               [formControlName]="field.name"
               [placeholder]="field.placeholder || ''"
               [min]="field.validation?.minDate"
@@ -101,9 +148,9 @@
             <mat-hint>DD/MM/YYYY</mat-hint>
             <mat-datepicker-toggle
               matSuffix
-              [for]="picker"
+              [for]="datePicker"
             ></mat-datepicker-toggle>
-            <mat-datepicker #picker></mat-datepicker>
+            <mat-datepicker touchUi #datePicker></mat-datepicker>
 
             <!-- Errors -->
             <mat-error>{{

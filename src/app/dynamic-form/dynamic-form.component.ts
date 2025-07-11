@@ -18,7 +18,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
+import { MatButtonModule, MatButton } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { DynamicFormValidatorService } from './dynamic-form-validator.service';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -27,13 +27,18 @@ import {
   MAT_DATE_FORMATS,
   MAT_DATE_LOCALE,
   MatNativeDateModule,
+  provideNativeDateAdapter,
 } from '@angular/material/core';
-import { MomentDateAdapter } from '@angular/material-moment-adapter';
+import {
+  MatMomentDateModule,
+  MomentDateAdapter,
+} from '@angular/material-moment-adapter';
 import { DDMMYYYY_DATE_FORMAT, toDDMMYYYY } from '../utils/datepicker';
 
 @Component({
   selector: 'app-dynamic-form',
   imports: [
+    MatButton,
     CommonModule,
     ReactiveFormsModule,
     MatFormFieldModule,
@@ -46,6 +51,7 @@ import { DDMMYYYY_DATE_FORMAT, toDDMMYYYY } from '../utils/datepicker';
     MatCheckboxModule,
     MatDatepickerModule,
     MatNativeDateModule,
+    MatMomentDateModule,
   ],
   providers: [
     {
@@ -54,6 +60,7 @@ import { DDMMYYYY_DATE_FORMAT, toDDMMYYYY } from '../utils/datepicker';
       deps: [MAT_DATE_LOCALE],
     },
     { provide: MAT_DATE_FORMATS, useValue: DDMMYYYY_DATE_FORMAT },
+    provideNativeDateAdapter(),
   ],
   templateUrl: './dynamic-form.component.html',
   styleUrl: './dynamic-form.component.scss',
@@ -76,8 +83,19 @@ export class DynamicFormComponent implements OnInit {
   private createForm(): FormGroup {
     const group = this.formBuilder.group({});
     this.fields().forEach((field) => {
-      const control = this.createFormControl(field);
-      group.addControl(field.name, control);
+      if (field.type === 'date-range') {
+        group.addControl(
+          field.name + '_start',
+          this.formBuilder.control(field.value?.start || null),
+        );
+        group.addControl(
+          field.name + '_end',
+          this.formBuilder.control(field.value?.end || null),
+        );
+      } else {
+        const control = this.createFormControl(field);
+        group.addControl(field.name, control);
+      }
     });
     return group;
   }
@@ -173,6 +191,4 @@ export class DynamicFormComponent implements OnInit {
     }
     return '';
   }
-
-
 }

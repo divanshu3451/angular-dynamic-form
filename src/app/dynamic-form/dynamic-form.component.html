@@ -115,21 +115,6 @@
                 <button mat-raised-button matDateRangePickerApply>Apply</button>
               </mat-date-range-picker-actions> -->
             </mat-date-range-picker>
-            <mat-error *ngIf="form.hasError('dateRangeRequired')">
-              Both start and end dates are required.
-            </mat-error>
-            <mat-error *ngIf="form.hasError('minDate')">
-              Start date is before the minimum allowed date.
-            </mat-error>
-            <mat-error *ngIf="form.hasError('maxDate')">
-              End date is after the maximum allowed date.
-            </mat-error>
-            <mat-error *ngIf="form.hasError('minRangeDays')">
-              The range must be at least {{ field.validation?.minRangeDays }} days.
-            </mat-error>
-            <mat-error *ngIf="form.hasError('maxRangeDays')">
-              The range must be at most {{ field.validation?.maxRangeDays }} days.
-            </mat-error>
           </mat-form-field>
         }
 
